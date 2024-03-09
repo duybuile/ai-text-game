@@ -1,1 +1,6 @@
 # Configuration file
+MongoDB:
+    cluster: ai-text-game-cluster
+    connection_string: mongodb+srv://<username>:<password>@<cluster>.vuj2plc.mongodb.net/?retryWrites=true&w=majority&appName=<cluster>
+    database: ai-text-game-db
+    collection: ai-text-game-collection
