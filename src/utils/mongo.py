@@ -31,12 +31,12 @@ def get_client():
     return client
 
 
-def get_collection(client: pymongo.MongoClient) -> Collection:
+def get_collection(client: pymongo.MongoClient, collection_name: str) -> Collection:
     # Get the database (create it if it doesn't exist)
     db = client[mongo_cfg["database"]]
 
     # Get the collection (create it if it doesn't exist)
-    collection = db[mongo_cfg["collection"]]
+    collection = db[mongo_cfg[collection_name]]
     return collection
 
 
@@ -54,11 +54,12 @@ def insert_data(collection: Collection, doc: dict):
 def fetch_all_data(collection: Collection):
     try:
         # Find all documents
-        documents = collection.find({})
-
+        documents = collection.find()
         # Print each document
         for document in documents:
             print(document)
+        return documents
+
     except Exception as e:
         print("Error fetching data:", e)
 
@@ -66,7 +67,7 @@ def fetch_all_data(collection: Collection):
 def example():
     # Connect to MongoDB
     client = get_client()
-    collection = get_collection(client)
+    collection = get_collection(client, "collection")
 
     # Read json data from file test/sample_prompt.json
     data = read_from_json("test/sample_prompt.json")
