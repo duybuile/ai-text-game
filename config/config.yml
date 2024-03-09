@@ -4,3 +4,13 @@ MongoDB:
     connection_string: mongodb+srv://<username>:<password>@<cluster>.vuj2plc.mongodb.net/?retryWrites=true&w=majority&appName=<cluster>
     database: ai-text-game-db
     collection: ai-text-game-collection
+logging:
+    level: DEBUG
+    filestream_logging: False
+    filepath: logs/ai-text-game.log
+openai:
+    model: gpt-3.5-turbo
+    temperature: 0.2
+huggingface:
+    summarizer: True
+    summarizer_model: facebook/bart-large-cnn
