@@ -4,11 +4,23 @@ from fastapi import FastAPI, status, HTTPException
 from src.game_collection import GameCollection
 from src.game_model import GameModel
 from src.utils.mongo import get_client, get_collection, fetch_all_data
+from fastapi.middleware.cors import CORSMiddleware
 
 client = get_client()
 game_collection = get_collection(client, "collection")
 
 app = FastAPI()
+
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")

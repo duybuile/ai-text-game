@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 import pymongo
+from bson import ObjectId
 from dotenv import find_dotenv, load_dotenv
 from pymongo.collection import Collection
 
@@ -31,12 +32,12 @@ def get_client():
     return client
 
 
-def get_collection(client: pymongo.MongoClient, collection_name: str) -> Collection:
+def get_collection(client: pymongo.MongoClient) -> Collection:
     # Get the database (create it if it doesn't exist)
     db = client[mongo_cfg["database"]]
 
     # Get the collection (create it if it doesn't exist)
-    collection = db[mongo_cfg[collection_name]]
+    collection = db[mongo_cfg["collection"]]
     return collection
 
 
@@ -54,20 +55,50 @@ def insert_data(collection: Collection, doc: dict):
 def fetch_all_data(collection: Collection):
     try:
         # Find all documents
-        documents = collection.find()
-        # Print each document
-        for document in documents:
-            print(document)
-        return documents
+        documents = collection.find({})
 
+        return documents
     except Exception as e:
         print("Error fetching data:", e)
+
+
+def fetch_one_data(collection: Collection, doc_id: str):
+    try:
+        # Convert the string ID to a MongoDB ObjectId
+        object_id = ObjectId(doc_id)
+        # Find one document
+        document = collection.find_one({"_id": object_id})
+
+        # return document
+        return document
+    except Exception as e:
+        print("Error fetching data:", e)
+
+
+def delete_data(collection: Collection, doc_id: str):
+    try:
+        # Convert the string ID to a MongoDB ObjectId
+        object_id = ObjectId(doc_id)
+        # Delete the document
+        collection.delete_one({"_id": object_id})
+        print("Data deleted successfully!")
+    except Exception as e:
+        print("Error deleting data:", e)
+
+
+def delete_all(collection: Collection):
+    try:
+        # Delete all documents
+        collection.delete_many({})
+        print("All data deleted successfully!")
+    except Exception as e:
+        print("Error deleting data:", e)
 
 
 def example():
     # Connect to MongoDB
     client = get_client()
-    collection = get_collection(client, "collection")
+    collection = get_collection(client)
 
     # Read json data from file test/sample_prompt.json
     data = read_from_json("test/sample_prompt.json")
