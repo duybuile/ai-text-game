@@ -19,14 +19,13 @@ async def root():
 @app.post(
     "/games/",
     response_description="Create game",
-    # response_model=GameModel,
     response_model_by_alias=False,
     status_code=status.HTTP_201_CREATED
 )
 async def create_item(game: GameModel):
     try:
         result = game_collection.insert_one(game.dict())
-        return ObjectId(result.inserted_id())
+        return str(result.inserted_id)
     except Exception as e:
         print("Error creating game:", e)
 
@@ -34,7 +33,7 @@ async def create_item(game: GameModel):
 @app.get(
     "/games/",
     response_description="List all games",
-    # response_model=GameCollection,
+    response_model=GameCollection,
     response_model_by_alias=False,
     status_code=status.HTTP_200_OK
 )
