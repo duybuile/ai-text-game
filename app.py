@@ -2,23 +2,39 @@ import os
 from typing import Annotated
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from openai import OpenAI
 
 from src.llms.prompt_eng import build_first_prompt, build_next_prompt
-from src.utils import mongo
 from src.utils.config import cfg
 from src.utils.log_handler import setup_logger
 from src.utils.mongo import fetch_one_data
+
+from bson import ObjectId
+from fastapi import FastAPI, status, HTTPException, Request, Depends
+
+from src.game_collection import GameCollection
+from src.game_model import GameModel
+from src.utils.mongo import get_client, get_collection
+
+client = get_client()
+game_collection = get_collection(client)
 
 logger = setup_logger(cfg["logging"]["filestream_logging"],
                       cfg["logging"]["filepath"],
                       cfg["logging"]["level"])
 
 # User credentials for authentication
-app = FastAPI()
+
+# Initialise app
+app = FastAPI(
+    title="FastAPI",
+    version="0.1.0",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
 security = HTTPBasic()
 loaded_bots = {}
 
@@ -28,15 +44,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
-
-# Initialise app
-app = FastAPI(
-    title="FastAPI",
-    version="0.1.0",
-    docs_url=None,
-    redoc_url=None,
-    openapi_url=None,
 )
 
 app_data = {}
@@ -75,9 +82,7 @@ async def generate_response(request: Request):
     # If the message is empty, we load the information from the mongo db
     if msg == '':
         # fetch document with the game_id from mongo db
-        client = mongo.get_client()
-        collection = mongo.get_collection(client)
-        doc = fetch_one_data(collection, game_id)
+        doc = fetch_one_data(game_collection, game_id)
         if doc is None:
             logger.error(f"Document with id {game_id} not found")
             return HTTPException(status_code=404, detail="Document not found")
@@ -110,6 +115,60 @@ async def generate_response(request: Request):
     logger.debug(f"AI: {response.choices[0].message.content.strip()}")
 
     return {"message": conversations[-1]["content"]}
+
+
+#######
+# GAME API
+#######
+@app.post(
+    "/games/",
+    response_description="Create game",
+    response_model_by_alias=False,
+    status_code=status.HTTP_201_CREATED
+)
+async def create_item(game: GameModel):
+    try:
+        result = game_collection.insert_one(game.dict())
+        return str(result.inserted_id)
+    except Exception as e:
+        print("Error creating game:", e)
+
+
+@app.get(
+    "/games/",
+    response_description="List all games",
+    response_model=GameCollection,
+    response_model_by_alias=False,
+    status_code=status.HTTP_200_OK
+)
+async def list_games():
+    try:
+        games = game_collection.find()
+        if games:
+            return GameCollection(games=games)
+        else:
+            return GameCollection(games=[])
+    except Exception as e:
+        print("Error listing games:", e)
+
+
+@app.get(
+    "/games/{game_id}",
+    response_description="Get a single game",
+    response_model=GameModel,
+    response_model_by_alias=False,
+    status_code=status.HTTP_200_OK
+)
+async def get_game(game_id: str):
+    """
+    Get the record for a specific game, looked up by `id`.
+    """
+    if (
+        game := game_collection.find_one({"_id": ObjectId(game_id)})
+    ) is not None:
+        return game
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Game {game_id} not found")
 
 
 # RUN!!!
