@@ -2,20 +2,18 @@ import os
 from typing import Annotated
 
 import uvicorn
+from bson import ObjectId
+from fastapi import FastAPI, status, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from openai import OpenAI
 
-from src.llms.prompt_eng import build_first_prompt, build_next_prompt
+from src.game_collection import GameCollection
+from src.game_model import GameModel
+from src.llms.prompt_eng import build_first_prompt, build_next_prompt, build_image_prompt
 from src.utils.config import cfg
 from src.utils.log_handler import setup_logger
 from src.utils.mongo import fetch_one_data
-
-from bson import ObjectId
-from fastapi import FastAPI, status, HTTPException, Request, Depends
-
-from src.game_collection import GameCollection
-from src.game_model import GameModel
 from src.utils.mongo import get_client, get_collection
 
 client = get_client()
@@ -99,8 +97,9 @@ async def generate_response(request: Request):
         # summary = summarize_conversation(conversations)
         prompt = build_next_prompt(conversations, msg)
 
+    # Call OpenAI
+    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     try:
-        openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = openai_client.chat.completions.create(
             model=cfg["openai"]["model"],
             messages=[{"role": "user", "content": prompt}],
@@ -110,11 +109,34 @@ async def generate_response(request: Request):
         print(f"Error calling OpenAI: {e}")
         return {"message": "Oops! Something went wrong. Try again later."}
 
-    # Add AI response to conversation history
-    conversations.append({"role": "ai", "content": response.choices[0].message.content.strip()})
-    logger.debug(f"AI: {response.choices[0].message.content.strip()}")
+    response_content = response.choices[0].message.content.strip()
+    logger.debug(f"AI: {response_content}")
 
-    return {"message": conversations[-1]["content"]}
+    # Add user message to conversation history
+    conversations.append({"role": "user", "content": response_content})
+
+    # check if response_content contains "congratulations"
+    is_finished = "congratulations" in response_content.lower()
+
+    # Build an image prompt with the response content
+    image_prompt = build_image_prompt(response_content)
+    logger.debug(f"AI: {image_prompt}")
+    try:
+        image_response = openai_client.chat.completions.create(
+            model=cfg["openai"]["model"],
+            messages=[{"role": "user", "content": image_prompt}],
+            temperature=cfg["openai"]["temperature"],
+        )
+    except Exception as e:
+        print(f"Error calling OpenAI: {e}")
+        return {"message": "Oops! Something went wrong. Try again later."}
+
+    image_response_content = image_response.choices[0].message.content.strip()
+    logger.debug(f"AI: {image_response_content}")
+
+    return {"message": conversations[-1]["content"],
+            "image_prompt": image_response_content,
+            "is_finished": is_finished}
 
 
 #######
