@@ -1,8 +1,5 @@
 venv
 .env
 .idea
-<<<<<<< Updated upstream
 logs
-=======
 __pycache__
->>>>>>> Stashed changes
