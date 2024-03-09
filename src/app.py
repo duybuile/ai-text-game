@@ -7,7 +7,7 @@ from src.utils.mongo import get_client, get_collection, fetch_all_data
 from fastapi.middleware.cors import CORSMiddleware
 
 client = get_client()
-game_collection = get_collection(client, "collection")
+game_collection = get_collection(client)
 
 app = FastAPI()
 
