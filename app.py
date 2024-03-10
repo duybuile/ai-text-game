@@ -89,9 +89,10 @@ async def generate_response(request: Request):
             logger.debug(f"AI: {prompt}")
     else:
         logger.debug(f"User: {msg}")
-        # Limit conversation history to 3 messages
-        if len(conversations) > 3:
-            conversations = conversations[-3:]
+        # Limit conversation history to the latest number of conversations
+        num_conversations = cfg["openai"]["num_conversations"]
+        if len(conversations) > num_conversations:
+            conversations = conversations[-num_conversations:]
 
         # Summarize the conversation history
         # summary = summarize_conversation(conversations)
