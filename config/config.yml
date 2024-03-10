@@ -21,3 +21,4 @@ stability:
     seed: 4253978046
     width: 512
     height: 512
+    output: img

@@ -40,6 +40,7 @@ def generate_image(prompt: str):
     # Set up our warning to print to the console if the adult content classifier is tripped.
     # If adult content classifier is not tripped, save generated images.
     encoded_string = ""
+    img_dir = cfg["stability"]["output"]
     for resp in answers:
         for artifact in resp.artifacts:
             if artifact.finish_reason == generation.FILTER:
@@ -48,8 +49,7 @@ def generate_image(prompt: str):
                     "Please modify the prompt and try again.")
             if artifact.type == generation.ARTIFACT_IMAGE:
                 img = Image.open(io.BytesIO(artifact.binary))
-                img.save(
-                    str(names.get_last_name().lower()) + ".png")  # Save our image!
+                img.save(img_dir + "/" + str(names.get_last_name().lower()) + ".png")  # Save our image!
                 encoded_string = convert_pillow_image_to_base64(artifact.binary)
     return encoded_string
 
@@ -73,7 +73,6 @@ def convert_pillow_image_to_base64(image):
     """
     encoded_string = base64.b64encode(image)
     return encoded_string
-
 
 # if __name__ == '__main__':
 #     load_dotenv(find_dotenv())
