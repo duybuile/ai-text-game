@@ -77,7 +77,9 @@ def convert_pillow_image_to_base64(image):
     """
     encoded_string = base64.b64encode(image)
     return encoded_string
-#
+
+
 # if __name__ == '__main__':
-#     encoding_str = generate_image("angry ferrari")
+#     load_dotenv(find_dotenv())
+#     encoding_str = generate_image("maze runner")
 #     print(encoding_str)
