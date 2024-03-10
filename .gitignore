@@ -3,4 +3,4 @@ venv
 .idea
 logs
 __pycache__
-*.png
+img
