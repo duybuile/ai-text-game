@@ -30,10 +30,6 @@ def generate_image(prompt: str):
     # Set up our initial generation parameters.
     answers = stability_api.generate(
         prompt=prompt,
-        seed=cfg["stability"]["seed"],  # If a seed is provided, the resulting generated image will be deterministic. What this
-        # means is that as long as all generation parameters remain the same, you can always recall the same image
-        # simply by generating it again. Note: This isn't quite the case for Clip Guided generations, which we'll
-        # tackle in a future example notebook.
         samples=1,  # Number of images to generate, defaults to 1 if not included.
         sampler=generation.SAMPLER_K_DPMPP_2M,
         width=cfg["stability"]["width"],
@@ -81,5 +77,5 @@ def convert_pillow_image_to_base64(image):
 
 # if __name__ == '__main__':
 #     load_dotenv(find_dotenv())
-#     encoding_str = generate_image("maze runner")
+#     encoding_str = generate_image("crazy cat running on the beach")
 #     print(encoding_str)
