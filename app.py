@@ -117,7 +117,7 @@ async def generate_response(request: Request):
     conversations.append({"role": "user", "content": response_content})
 
     # check if response_content contains "congratulations"
-    is_finished = "congratulations" in response_content.lower()
+    is_finished = gen_is_finished(response_content)
 
     # Build an image prompt with the response content
     image_prompt = build_image_prompt(response_content)
@@ -138,6 +138,14 @@ async def generate_response(request: Request):
     return {"message": conversations[-1]["content"],
             "image_prompt": image_response_content,
             "is_finished": is_finished}
+
+
+def gen_is_finished(response_content):
+    if "congratulations" in response_content.lower():
+        return True
+    if "end of game" in response_content.lower():
+        return True
+    return False
 
 
 #######
