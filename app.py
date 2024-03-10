@@ -11,6 +11,7 @@ from openai import OpenAI
 from src.game_collection import GameCollection
 from src.game_model import GameModel
 from src.llms.prompt_eng import build_first_prompt, build_next_prompt, build_image_prompt
+from src.llms.stability import generate_image
 from src.utils.config import cfg
 from src.utils.log_handler import setup_logger
 from src.utils.mongo import fetch_one_data
@@ -159,6 +160,7 @@ def gen_is_finished(response_content):
 )
 async def create_item(game: GameModel):
     try:
+        game.thumbnail = generate_image(game.title)
         result = game_collection.insert_one(game.dict())
         return str(result.inserted_id)
     except Exception as e:
