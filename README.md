@@ -22,6 +22,7 @@ MONGODB_USER=<your mongodb user>
 MONGODB_PASSWORD=<your mongodb password>
 AUTH_USER=<your auth user>
 AUTH_PWD=<your auth password>
+STABILITY_KEY=<your stability key>
 ```
 Note:
 - The `AUTH_USER` and `AUTH_PWD` are used for the FastAPI authentication. You can use any username and password. But they should be included in the Authorization header.

@@ -13,6 +13,7 @@ class GameModel(BaseModel):
     description: str = Field()
     objective: str = Field()
     current_setting: str = Field()
+    thumbnail: str | None = Field()
 
     model_config = ConfigDict(
         populate_by_name=True,

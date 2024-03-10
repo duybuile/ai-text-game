@@ -14,3 +14,9 @@ openai:
 huggingface:
     summarizer: True
     summarizer_model: facebook/bart-large-cnn
+stability:
+    host: grpc.stability.ai:443
+    model: stable-diffusion-512-v2-1  # (stable-diffusion, stable-diffusion-512-v2-1, or stable-diffusion-768-v2-1)
+    seed: 4253978046
+    width: 128
+    height: 128
